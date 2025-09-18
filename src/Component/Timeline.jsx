@@ -27,7 +27,9 @@ export function Timeline(){
         <div
         className={`timeline ${visible ? "animate" : ""}`}
         ref={timelineRef}>
-                <div class = "container-left">
+
+            
+                {/* <div class = "container-left">
                     <img src = "Textures/dot.jpg"></img>
                     <div class = "text-box">
                         <h2>The Beginning</h2>
@@ -76,7 +78,30 @@ export function Timeline(){
                         </div>
                         <span class = "right-arrow"></span>
                     </div>
-                </div> 
+                </div>  */}
+
+                <div class = "container-right">
+                    <img src = "Textures/dot.jpg"></img>
+                    <div class = "text-box">
+                        <h2>University</h2>
+                        <p><small>2023.09.01</small></p>
+                        <p>University of Wisconsin-Madison, my next life chapter begins!
+                        </p>
+                        <span class = "right-arrow"></span>
+                    </div>
+                </div>
+
+                <div class = "container-left">
+                    <img src = "Textures/dot.jpg"></img>
+                    <div class = "text-box">
+                        <h2>People and Robots Lab</h2>
+                        <p><small>2025.02.14</small></p>
+                        <p>Became a member in People and Robots Lab. Started to know about what is research and accumated experience of working with robots!</p>
+                        <span class = "left-arrow"></span>
+                    </div>
+                </div>
+
+
         </div>
     )
 }
