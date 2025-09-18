@@ -44,7 +44,7 @@ export function Timeline(){
                         <h2>My Kindergarten</h2>
                         <p><small>2007.xx.xx</small></p>
                         <div style = "display: flex;">
-                            <img href = "Textures/1.jpg"></img>
+                            <img src = "Textures/1.jpg"></img>
                             <p>Big head, small body</p>
                         </div>
 
@@ -59,7 +59,7 @@ export function Timeline(){
                         <p><small>2010.10.24</small></p>
                         <div style = "display: flex;">
                             <p>A little and cute baby came to our family! My little brother!</p>
-                            <img href = "Textures/2.jpg"></img>
+                            <img src = "Textures/2.jpg"></img>
                         </div>
                         <span class = "left-arrow"></span>
                     </div>
@@ -71,7 +71,7 @@ export function Timeline(){
                         <h2>Happy Birthday!</h2>
                         <p><small>20xx.10.24 or 20xx.12.07</small></p>
                         <div style = "display: flex;">
-                            <img href = "Textures/3.jpg"></img>
+                            <img src = "Textures/3.jpg"></img>
                             <p>Happy Birthday to you or to me? (I forgot when the photo was token)</p>
                         </div>
                         <span class = "right-arrow"></span>
