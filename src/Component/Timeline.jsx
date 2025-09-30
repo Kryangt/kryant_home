@@ -29,78 +29,68 @@ export function Timeline(){
         ref={timelineRef}>
 
             
-                {/* <div class = "container-left">
-                    <img src = "Textures/dot.jpg"></img>
-                    <div class = "text-box">
-                        <h2>The Beginning</h2>
-                        <p><small>2004.12.07</small></p>
-                        <p>I was born 🎉</p>
-                        <span class = "left-arrow"></span>
-                    </div>
-
-                </div>
-
-                <div class = "container-right">
-                    <img src = "Textures/dot.jpg"></img>
-                    <div class = "text-box">
-                        <h2>My Kindergarten</h2>
-                        <p><small>2007.xx.xx</small></p>
-                        <div style = "display: flex;">
-                            <img src = "Textures/1.jpg"></img>
-                            <p>Big head, small body</p>
+                <div className = "container-left">
+                    <img className = "icon" src = "Textures/dot.jpg"></img>
+                        <div className = "text-image">
+                            <div className = "text-box">
+                                <h2>The Beginning</h2>
+                                <p><small>2004.12.07</small></p>
+                                <p>I was born 🎉</p>
+                            </div>
+                            <span className = "left-arrow"></span>
                         </div>
-
-                        <span class = "right-arrow"></span>
-                    </div>
                 </div>
-
-                <div class = "container-left">
-                    <img src = "Textures/dot.jpg"></img>
-                    <div class = "text-box">
-                        <h2>Family Milestone</h2>
-                        <p><small>2010.10.24</small></p>
-                        <div style = "display: flex;">
-                            <p>A little and cute baby came to our family! My little brother!</p>
-                            <img src = "Textures/2.jpg"></img>
-                        </div>
-                        <span class = "left-arrow"></span>
-                    </div>
-                </div>
-
-                <div class = "container-right">
-                    <img src = "Textures/dot.jpg"></img>
-                    <div class = "text-box">
-                        <h2>Happy Birthday!</h2>
-                        <p><small>20xx.10.24 or 20xx.12.07</small></p>
-                        <div style = "display: flex;">
-                            <img src = "Textures/3.jpg"></img>
-                            <p>Happy Birthday to you or to me? (I forgot when the photo was token)</p>
-                        </div>
-                        <span class = "right-arrow"></span>
-                    </div>
-                </div>  */}
 
                 <div className = "container-right">
-                    <img src = "Textures/dot.jpg"></img>
-                    <div className = "text-box">
-                        <h2>University</h2>
-                        <p><small>2023.09.01</small></p>
-                        <p>University of Wisconsin-Madison, my next life chapter begins!
-                        </p>
-                        <span className = "right-arrow"></span>
+                    <img className = "icon" src = "Textures/dot.jpg"></img>
+                        <div className = "text-image">
+                        <div className = "text-box">
+                            <h2>My Kindergarten</h2>
+                            <p><small>2007.xx.xx</small></p>
+                            <p>Big head, small body</p>
+                            <span className = "right-arrow"></span>
+                        </div>
+                        <img className = "image-content"src = "Textures/1.jpg"></img>
+                        </div>
+                </div>
+
+                <div className = "container-left">
+                    <img className = "icon" src = "Textures/dot.jpg"></img>
+                    <div className = "text-image">
+                        <img className = "image-content"src = "Textures/2.jpg"></img>
+                        <div className = "text-box">
+                            <h2>Family Milestone</h2>
+                            <p><small>2010.10.24</small></p>
+                            <p>A little and cute baby came to our family! My little brother!</p>
+                            <span className = "left-arrow"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className = "container-right">
+                    <img className = "icon" src = "Textures/dot.jpg"></img>
+                    <div className = "text-image">
+                        <div className = "text-box">
+                            <h2>Hi, Madison</h2>
+                            <p><small>2023.09.06</small></p>
+                            <p>Came to an unfamilar land and started a new life chapter. Coexistent of excitement and anxiety</p>
+                            <span className = "right-arrow"></span>
+                        </div>
+                        <img className = "image-content"src = "Textures/4.jpg"></img>
                     </div>
                 </div>
 
                 <div className = "container-left">
-                    <img src = "Textures/dot.jpg"></img>
-                    <div className = "text-box">
-                        <h2>People and Robots Lab</h2>
-                        <p><small>2025.02.14</small></p>
-                        <p>Became a member in People and Robots Lab. Started to know about what is research and accumated experience of working with robots!</p>
-                        <span className = "left-arrow"></span>
+                    <img className = "icon" src = "Textures/peopleandrobot.jpg"></img>
+                    <div className = "text-image">
+                        <div className = "text-box">
+                            <h2>Hi, Research</h2>
+                            <p><small>2025.2.14</small></p>
+                            <p>I'm glad to become a part of People and Robots lab to conduct related to Human-Computer Interaction with mentor Yaxin Hu and PI Prof.Mutlu</p>
+                            <span className = "left-arrow"></span>
+                        </div>
                     </div>
                 </div>
-
 
         </div>
     )
