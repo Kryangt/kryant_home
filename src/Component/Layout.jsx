@@ -8,6 +8,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import {About} from "./About";
 import {Gallery} from "./Gallery";
 import { Timeline } from "./Timeline";
+import { Publication } from "./Publication";
 export function Layout(){
     return <div>
       <Container style={{cursor: "default", width: "100%"}}>
@@ -39,8 +40,8 @@ export function Layout(){
       <Element name="Publications">
         <section style={{ height: '100vh', width: '100%', maxWidth: '90vw', margin: '0 auto' }}>
           <h1>Publications</h1>
-          <p>This is the content of section 2</p>
           <br></br>
+          <Publication/>
         </section>
       </Element>
       <hr></hr>
