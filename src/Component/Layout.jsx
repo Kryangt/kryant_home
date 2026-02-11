@@ -37,7 +37,7 @@ export function Layout(){
         </section>
       </Element>
       <hr></hr>
-      <Element name="Publications">
+      <Element name="Publications" style={{fontSize: 10}}>
         <section style={{ height: '100vh', width: '100%', maxWidth: '90vw', margin: '0 auto' }}>
           <h1>Publications</h1>
           <br></br>
@@ -48,7 +48,6 @@ export function Layout(){
       <Element name="Projects">
       <section style={{ height: '100vh', width: '100%', maxWidth: '90vw', margin: '0 auto' }}>  
           <h1>Gallery</h1>
-          <p>This is the content of section 2</p>
           <br></br>
           <Gallery/>
         </section>
@@ -57,7 +56,6 @@ export function Layout(){
       <Element name="Timeline">
         <section style={{ height: '100vh', width: '100%', maxWidth: '90vw' }}>
           <h1>Timeline</h1>
-          <p>This is the content of section 2</p>
           <br></br>
           <Timeline/>
         </section>
