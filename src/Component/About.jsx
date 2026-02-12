@@ -66,9 +66,10 @@ export function About() {
             sx={{
                 paddingLeft: "40px"
             }}>
-                <Typography textAlign="left" sx = {{fontSize: "16px"}}><em>Hi, If you see an animated face on the left, please click the face to add a mood for me</em></Typography  >
-                <Typography textAlign="left" sx = {{lineHeight: 1.5}}>Hey, I'm Kryant Ye. </Typography> 
-                <Typography textAlign="left" sx = {{lineHeight: 1.5}}>I'll be a junior starting from the next semester at UW-Madison (Fall 2025) and I'm planning to graduate this academic year!</Typography >  
+                <Typography textAlign="left" sx = {{fontSize: "14px"}}><em>*Hi, If you see an animated face on the left, please click the face to add a mood for me</em></Typography>
+                <Typography textAlign="left" sx = {{fontSize: "14px"}}><em>*If you see the animated face is stretched or animation is laggy... Probably is due to the web loading, please refresh the page if you like</em></Typography>
+                <Typography textAlign="left" sx = {{lineHeight: 1.5}}>Hey, I'm Chenming Ye (Kryant Ye). </Typography> 
+                <Typography textAlign="left" sx = {{lineHeight: 1.5}}>I'll be a junior starting from the next semester at UW-Madison (Spring 2026) and I'm planning to graduate this academic year!</Typography >  
                 <Typography textAlign="left">Currently (summer 2025), I am working at People&Robots Lab as an undergraduate research assisstant with mentor Yaxin Hu focusing on developing autonomous telepresent robots under ROS system</Typography  >
                 <Typography textAlign="left">My research interests are broad since there are so many cool techniques I want to explore. However, I aim to focus on robots and visualization research that is able to tackle real human issues</Typography>
                 <Typography textAlign="left">Other than academy, I'm a fan of tennis 🎾 and basketball 🏀. Coldplay is my favoriate band. I don't play video games quite often, but nba2k series and Forza Horizon 5 are the games I love to play </Typography>

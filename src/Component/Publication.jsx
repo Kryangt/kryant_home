@@ -3,28 +3,16 @@ import "./Publication.css";
 
 const publications = [
   {
-    projectName: "Adaptive Telepresence Robot Navigation",
-    coAuthors: "Kryant Ye, Yaxin Hu, Bilge Mutlu",
+    projectName: "Co-designing Robots through in-situ Bodystorming to Support Cultural Institution Volunteers",
+    coAuthors: "Yaxin Hu, Hui-Ru Ho, Chenming Ye, Bilge Mutlu.",
     intro:
-      "Designed an adaptive navigation strategy for telepresence robots to improve safety and social comfort in shared indoor spaces.",
+      "Explored new method of designing human robot interaction in public facilities, and tried to propose a guideline for designing robot in public spaces",
   },
   {
-    projectName: "Human-Aware Spatial Intent Prediction",
-    coAuthors: "Kryant Ye, Yaxin Hu",
+    projectName: "NarraGuide: an LLM-based Narrative Mobile Robot for Remote Place Exploration",
+    coAuthors: "Yaxin Hu, Arissa J. Sato, Jingxin Du, Chenming Ye, Anjun Zhu, Pragathi Praveena, and Bilge Mutlu",
     intro:
-      "Explored lightweight intent modeling from interaction context to predict user movement and support smoother robot path planning.",
-  },
-  {
-    projectName: "Interactive Visual Analytics for Robot Studies",
-    coAuthors: "Kryant Ye, Lab Team",
-    intro:
-      "Built a visual analytics prototype for summarizing experiment logs, participant feedback, and robot behavior patterns.",
-  },
-  {
-    projectName: "Explainable HRI Behavior Feedback",
-    coAuthors: "Kryant Ye, Research Collaborators",
-    intro:
-      "Investigated UI designs that explain robot decisions to users and reduce confusion during collaborative tasks.",
+      "Explored how can the location based narrative LLM techniques on mobile robots can help the experience of remote space exploration",
   },
 ];
 
