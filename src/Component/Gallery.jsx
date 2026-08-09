@@ -1,121 +1,90 @@
-import { useEffect, useState, useRef, use} from "react";
-import { protraitRender } from "../../Scripts/1";
-import {Snowman} from "../../Scripts/snowman";
-import { CyberTruck } from "../../Scripts/cybertruck";
-import React from "react";
-import Grid from "@mui/material/Grid"
-import Button from "@mui/material/Button"
-import Stack from "@mui/material/Stack"
-import { Box } from "@mui/material";
-import Typography from '@mui/material/Typography';
-import { createTheme } from '@mui/material/styles';
-import { ThemeProvider } from '@mui/material/styles';
-import { Monopoly } from "../../Scripts/monopoly";
-import {Donuts} from "../../Scripts/Donut";
+import { useRef, useState } from "react";
+import "./Gallery.css";
 
-    export function Gallery() {
-        
-        const canvas1 = useRef(null)
-        const canvas2 = useRef(null)
-        const canvas3 = useRef(null)
-        const canvas4 = useRef(null)
-        const boxRef = useRef(null)
-        useEffect(() => {
-            const canvas1Current = canvas1.current;
-            const canvas2Current = canvas2.current;
-            const canvas3Current = canvas3.current;
-            const canvas4Current = canvas4.current;
-            const box = boxRef.current
-            if(canvas1Current && canvas2Current&& canvas3Current && canvas4Current) {
-                // Clear canvas before starting new animation
-                canvas1Current.width = 0.95 * box.clientWidth
-                canvas1Current.height = 0.95 * box.clientHeight
+const PROJECTS = [
+  { title: "Project Alpha" },
+  { title: "Project Beta" },
+  { title: "Project Gamma" },
+  { title: "Project Delta" },
+  { title: "Project Epsilon" },
+];
 
-                canvas2Current.width = 0.95 * box.clientWidth
-                canvas2Current.height = 0.95 * box.clientHeight
+export function Gallery() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const pointerStartRef = useRef(null);
+  const hoverLockRef = useRef(0);
 
-                canvas3Current.width = 0.95 * box.clientWidth
-                canvas3Current.height = 0.95 * box.clientHeight
+  function move(direction) {
+    setActiveIndex((current) => (current + direction + PROJECTS.length) % PROJECTS.length);
+  }
 
-                canvas4Current.width = box.clientWidth
-                canvas4Current.height = box.clientHeight
-                Snowman(canvas1Current);
-                CyberTruck(canvas2Current)
-                Monopoly(canvas3Current);
-                protraitRender(canvas4Current);
-            }
-            }, [])
-
-
-        return (
-            <Box sx = {{flexGrow: 1}}>
-                <Grid container columns = {{xs: 4, sm: 8, md: 12, lg: 12}} spacing = {{xs: 1, sm: 1, md: 1}}>
-                    <Grid size= {{xs:4, sm: 2, md: 3, lg: 3}} sx = {{height: "80vh"}}>
-                        <Stack>
-                            <Box ref = {boxRef} display = "flex" justifyContent = "center" alignItems = "center"   sx={{
-                                height: "40vh",
-                                transition: "transform 0.3s ease, filter 0.3s ease",
-                                "&:hover": {
-                                    transform: "scale(1.2)",
-                                    backgroundColor: "#e0e0e0",
-                                    zIndex: 10,
-                                },
-                            }}>
-                                <canvas ref= {canvas1} ></canvas>
-                            </Box>
-                            <Box display = "flex" justifyContent = "center" alignItems = "center" sx = {{ height: "40vh"}}>
-                               
-                            </Box>
-                        </Stack>
-                    </Grid>
-                    <Grid  size= {{xs:4, sm: 2, md: 3, lg: 3}}>
-                        <Box display = "flex" justifyContent = "center" alignItems = "center" sx = {{ height: "40vh"}}>
-                               
-                        </Box>
-                        <Box ref = {boxRef} display = "flex" justifyContent = "center" alignItems = "center"   sx={{
-                                height: "40vh",
-                                transition: "transform 0.3s ease, filter 0.3s ease",
-                                "&:hover": {
-                                    transform: "scale(1.2)",
-                                    backgroundColor: "#e0e0e0",
-                                    zIndex: 10,
-                                },
-                            }}>                            
-                            <canvas ref= {canvas2}></canvas>
-                        </Box>
-                    </Grid>
-                    <Grid size= {{xs:4, sm: 2, md: 3, lg: 3}}>
-                    <Box ref = {boxRef} display = "flex" justifyContent = "center" alignItems = "center"   sx={{
-                                height: "40vh",
-                                transition: "transform 0.3s ease, filter 0.3s ease",
-                                "&:hover": {
-                                    transform: "scale(1.2)",
-                                    backgroundColor: "#e0e0e0",
-                                    zIndex: 10,
-                                },
-                            }}>
-                            <canvas ref= {canvas3}></canvas>
-                        </Box>
-                        <Box display = "flex" justifyContent = "center" alignItems = "center" sx = {{height: "40vh"}}>
-                               
-                        </Box>
-                    </Grid>
-                    <Grid size= {{xs:4, sm: 2, md: 3, lg: 3}}>
-                    <Box display = "flex" justifyContent = "center" alignItems = "center" sx = {{height: "40vh"}}>
-                    </Box>
-                    <Box ref = {boxRef} display = "flex" justifyContent = "center" alignItems = "center"   sx={{
-                                height: "40vh",
-                                transition: "transform 0.3s ease, filter 0.3s ease",
-                                "&:hover": {
-                                    transform: "scale(1.2)",
-                                    backgroundColor: "#e0e0e0",
-                                    zIndex: 10,
-                                },
-                            }}>                        
-                            <canvas ref= {canvas4}></canvas>
-                    </Box>
-                    </Grid>
-                </Grid> 
-            </Box>
-        )
+  function handleKeyDown(event) {
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      move(1);
     }
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      move(-1);
+    }
+  }
+
+  function handlePointerDown(event) {
+    pointerStartRef.current = event.clientX;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function handlePointerUp(event) {
+    if (pointerStartRef.current === null) return;
+    const distance = event.clientX - pointerStartRef.current;
+    pointerStartRef.current = null;
+    if (Math.abs(distance) < 45) return;
+    move(distance < 0 ? 1 : -1);
+  }
+
+  function selectProject(index) {
+    if (index === activeIndex) return;
+    if (performance.now() < hoverLockRef.current) return;
+    hoverLockRef.current = performance.now() + 480;
+    setActiveIndex(index);
+  }
+
+  return (
+    <div
+      className="project-gallery"
+      tabIndex="0"
+      onKeyDown={handleKeyDown}
+      aria-label="Project gallery. Use left and right arrow keys to change projects."
+    >
+      <div
+        className="project-deck"
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={() => { pointerStartRef.current = null; }}
+      >
+        {PROJECTS.map((project, index) => {
+          const offset = index - activeIndex;
+          const distance = Math.abs(offset);
+          const isActive = offset === 0;
+          return (
+            <article
+              className={`project-page ${isActive ? "project-page--active" : ""}`}
+              key={project.title}
+              style={{
+                "--offset": offset,
+                "--distance": distance,
+                zIndex: PROJECTS.length - distance,
+              }}
+              aria-hidden={!isActive}
+              aria-label={project.title}
+              onMouseEnter={() => selectProject(index)}
+              onClick={() => selectProject(index)}
+            >
+              <div className="project-page__placeholder" aria-hidden="true" />
+            </article>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

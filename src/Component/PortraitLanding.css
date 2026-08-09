@@ -1,0 +1,159 @@
+.portrait-landing {
+  min-height: 100vh;
+  overflow: visible;
+  background: #f6f7f4;
+  color: #171717;
+}
+
+.portrait-landing__stage {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.portrait-landing__canvas-wrap {
+  position: relative;
+  width: min(88vw, 860px);
+  aspect-ratio: 34 / 31;
+  display: grid;
+  place-items: center;
+}
+
+.portrait-landing__canvas-wrap--floating {
+  animation: portrait-float 3.15s ease-in-out infinite;
+}
+
+.portrait-landing__canvas {
+  width: 100%;
+  filter: drop-shadow(0 18px 28px rgba(20, 31, 34, 0.12));
+}
+
+.portrait-landing__arrow {
+  position: absolute;
+  right: clamp(20px, 4vw, 42px);
+  bottom: clamp(20px, 4vw, 42px);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  color: #171717;
+  cursor: pointer;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0;
+  transform: translate(16px, 16px);
+  pointer-events: none;
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s ease,
+    color 0.25s ease;
+}
+
+.portrait-landing__arrow--visible {
+  opacity: 1;
+  transform: translate(0, 0);
+  pointer-events: auto;
+}
+
+.portrait-landing__arrow:hover,
+.portrait-landing__arrow:focus-visible {
+  color: #b83a2f;
+  outline: none;
+}
+
+.portrait-landing__arrow-icon {
+  font-size: 1.45rem;
+  transform: translateY(-1px);
+}
+
+.portrait-landing__publication {
+  width: 100%;
+  margin-top: 0;
+  padding-bottom: 8vh;
+}
+
+.portrait-callout-label {
+  position: absolute;
+  z-index: 2;
+  color: #171717;
+  font-family: cursive;
+  font-size: clamp(0.8rem, 1.5vw, 1rem);
+  font-weight: 700;
+  letter-spacing: 0;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: portrait-label-fade-in 0.7s ease forwards;
+}
+
+.portrait-callout-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.portrait-callout-line {
+  fill: none;
+  stroke: #171717;
+  stroke-width: 2.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+@keyframes portrait-label-fade-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes portrait-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(7px);
+  }
+}
+
+@media (max-width: 640px) {
+  .portrait-landing__publication {
+    padding-bottom: 6vh;
+  }
+
+  .portrait-landing__stage {
+    padding: 16px;
+  }
+
+  .portrait-landing__canvas-wrap {
+    width: min(96vw, 620px);
+  }
+
+  .portrait-landing__arrow {
+    right: 16px;
+    bottom: 16px;
+    font-size: 0.95rem;
+  }
+
+  .portrait-landing__arrow-icon {
+    font-size: 1.25rem;
+  }
+
+  .portrait-callout-label {
+    font-size: 0.72rem;
+  }
+}

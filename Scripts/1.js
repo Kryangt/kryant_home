@@ -1,804 +1,719 @@
+const SAMPLE_COUNT = 100;
+const TRAIL_CAPACITY = 20;
 
-export function protraitRender(canvas)
-{
+const STYLE = {
+  color: "black",
+  faceWidth: 3,
+  lineWidth: 4,
+  eyeRadius: 5,
+};
 
-    let animationID
+const DEBUG_GUIDES = false;
 
-    let context = canvas.getContext("2d")
+export const DECOMPOSE_ROUTES = [
+  { direction: -1, curveDistance: 150, endX: -210, endY: -330 },
+  { direction: -1, curveDistance: 110, endX: -150, endY: -285 },
+  { direction: 0, curveDistance: 45, endX: -20, endY: -350 },
+  { direction: 1, curveDistance: 110, endX: 150, endY: -290 },
+  { direction: 1, curveDistance: 155, endX: 220, endY: -340 },
+];
 
-    let previousT
-    let centerX = canvas.width/2-50
-    let lastDisplacement = centerX
-    let centerY = canvas.height/2
-    let scaleX = 1.25
-    let scaleY = -1.25
-    let count = 0
-    let startTimestamp = null;
-    function draw(timestamp)
-    {
-        if (startTimestamp === null) {
-            startTimestamp = timestamp;
-        }
-        const localTime = timestamp - startTimestamp;
+export const PORTRAIT_PATHS = {
+  face: {
+    start: [-90, 40],
+    horizontalVelocity: 100,
+    verticalCurve: 140,
+  },
+  mouths: [
+    [[-0.67, -56.375], [-14.67, -57.375], [-28.67, -57.375]],
+    [[16, -47.386], [-11, -77.39], [-40, -49.36]],
+    [[10, -55.39], [-13, -35.39], [-39, -55.39]],
+    [[17, -56.39], [8, -75.39], [-9, -73.39]],
+  ],
+  hat: {
+    brim: [
+      [[-120.67, 88.96], [-126.67, 62.96], [-100.67, 23.96]],
+      [[-100.67, 23.96], [2.67, 7.96], [116.67, 33.96]],
+      [[116.67, 33.96], [142.33, 52.29], [141.33, 88.29]],
+      [[141.33, 88.29], [-1.33, 128.96], [-120.67, 88.96]],
+    ],
+    top: [[-110.67, 88.96], [-1.33, 299.29], [120.67, 93.29]],
+  },
+};
 
-        context.clearRect(0,0, canvas.width, canvas.height);
-        context.save();
-        context.translate(centerX+50, centerY);
+const LETTER_BLUEPRINTS = [
+  {
+    key: "H",
+    origin: [15, 40],
+    moveOffsetMs: 0,
+    moveTotalMs: 2000,
+    movePathMs: 1500,
+    drawDelayMs: 1500,
+    drawDurationSeconds: 0.8,
+    createStart: ({ width, height }) => [width, height],
+    end: [82.67, -57.375],
+    tangents: [[-400, 200], [300, 0]],
+    curves: [
+      [[82.67, -54.375], [80, -90.375], [82.67, -127.375]],
+      [[80, -90.375], [92, -90.375], [124.67, -90.375]],
+      [[122.67, -57.375], [124.67, -90.375], [122.67, -127.375]],
+    ],
+  },
+  {
+    key: "i",
+    origin: [75, 50],
+    moveOffsetMs: 0,
+    moveTotalMs: 2000,
+    movePathMs: 1500,
+    drawDelayMs: 1500,
+    drawDurationSeconds: 0.8,
+    createStart: ({ width, height }) => [width, randomBetween(-height, 0)],
+    end: [114.67, -116.7],
+    tangents: [[-50, -200], [-100, -60]],
+    curves: [
+      [[114.67, -116.7], [110.67, -126.375], [103.67, -131.375]],
+      [[104.67, -130.375], [90.67, -141.7], [102.67, -116.7]],
+      [[101.67, -117.7], [105.67, -110.7], [106.67, -103.375]],
+      [[106.67, -104.7], [105.67, -91.7], [91.67, -105.708]],
+      [[84.33, -110.7], [102.33, -96.7], [93.33, -91.7]],
+    ],
+  },
+  {
+    key: "I",
+    origin: [0, 0],
+    moveOffsetMs: 2500,
+    moveTotalMs: 2000,
+    movePathMs: 1500,
+    drawDelayMs: 4000,
+    drawDurationSeconds: 1,
+    createStart: ({ width, height }) => [-width, randomBetween(-height, 0)],
+    end: [7.67, -140.71],
+    tangents: [[300, 300], [300, -100]],
+    curves: [
+      [[7.67, -140.71], [28.67, -149.71], [50.67, -149.71]],
+      [[27.33, -149.708], [28.33, -210.7], [32.33, -220.708]],
+      [[-10.67, -223], [42.67, -219.05], [281.33, -215.05]],
+    ],
+  },
+  {
+    key: "M",
+    origin: [0, 0],
+    moveOffsetMs: 2500,
+    moveTotalMs: 2000,
+    movePathMs: 1000,
+    drawDelayMs: 3500,
+    drawDurationSeconds: 1,
+    createStart: ({ width, height }) => [randomBetween(-width, 0), -height],
+    end: [65.67, -218],
+    tangents: [[300, 200], [300, -400]],
+    curves: [
+      [[65.67, -218], [68.67, -186.385], [85.67, -218.39]],
+      [[27.33, -169.708], [28.33, -210.7], [32.33, -220.708]],
+      [[87.66, -218.39], [97.33, -180.38], [103.33, -218.39]],
+    ],
+  },
+  {
+    key: "K",
+    origin: [0, 0],
+    moveOffsetMs: 3000,
+    moveTotalMs: 4000,
+    movePathMs: 3000,
+    drawDelayMs: 6000,
+    drawDurationSeconds: 1.25,
+    createStart: ({ width, height }) => [-width, height * 2],
+    end: [156, -216.06],
+    tangents: [[-300, -50], [0, 400]],
+    curves: [
+      [[156, -216.06], [155.67, -181.04], [151.67, -124.04]],
+      [[154.67, -167.04], [183.67, -155.04], [188.67, -126.04]],
+      [[154.67, -166.04], [194.67, -192.04], [195.67, -216.04]],
+    ],
+  },
+  {
+    key: "Y",
+    origin: [0, 0],
+    moveOffsetMs: 3000,
+    moveTotalMs: 4000,
+    movePathMs: 3000,
+    drawDelayMs: 6000,
+    drawDurationSeconds: 1.25,
+    createStart: ({ width, height }) => [randomBetween(-width, width), -height],
+    end: [250.67, -216.72],
+    tangents: [[-300, 50], [0, 300]],
+    curves: [
+      [[250.67, -216.72], [250, -184.71], [249.67, -164.71]],
+      [[249, -165.71], [240.67, -121.71], [214.67, -150.71]],
+      [[249, -165.71], [266.67, -88.71], [288.67, -132.71]],
+    ],
+  },
+];
 
-        context.scale(scaleX, scaleY);
-        //assume the whole process of drawing the face is 3 seconds
-        {
-            if(previousT != undefined && localTime >= 3000 & localTime < 3500)
-            {
-                let delta = localTime / 1000 - previousT;
-                centerX = -150* delta + centerX;
+function randomBetween(min, max) {
+  return min + Math.random() * (max - min);
+}
 
-                if(scaleX >= 1 && scaleY <= -1)
-                {
-                    scaleX = scaleX - delta * 0.52 ;
-                    scaleY = delta * 0.52 + scaleY
-                }
-            }
-            previousT = localTime/1000;
-            drawFace(localTime);
-            drawEyes(localTime);
-            drawHat(localTime);
+function createRuntime(canvas) {
+  return {
+    centerX: canvas.width / 2 - 50,
+    centerY: canvas.height / 2 + 95,
+    scaleX: 1.55,
+    scaleY: -1.55,
+    previousTime: undefined,
+    facePreviousTime: -1,
+    facePreviousPoint: [...PORTRAIT_PATHS.face.start],
+    facePoints: [[...PORTRAIT_PATHS.face.start]],
+    hatPoints: [],
+    hatTopPoints: [],
+    mouthActive: false,
+    mouthIndex: 0,
+    letters: LETTER_BLUEPRINTS.map((letter) => ({
+      ...letter,
+      start: letter.createStart(canvas),
+      movingPoints: [],
+      staticPoints: letter.curves.map(() => []),
+    })),
+  };
+}
 
-            context.save();
-            context.translate(20, 0)
-            if(localTime > 7000 && mouseClick)
-            {
-                let mouse = mouses[(mouseIndex)% mouses.length];
-                context.beginPath();
-                context.moveTo(mouse[0][0], mouse[0][1])
-                context.quadraticCurveTo(mouse[1][0], mouse[1][1], mouse[2][0], mouse[2][1])
-                context.lineWidth = 3;
-                context.stroke();
-            }
-            context.restore()
-        }
+export function portraitRender(canvas, options = {}) {
+  const context = canvas.getContext("2d");
+  const runtime = createRuntime(canvas);
+  const getDecomposeProgress = options.getDecomposeProgress || (() => 0);
+  let animationID;
+  let startTimestamp = null;
 
-        context.restore();
-
-        context.save();
-        context.translate(canvas.width/2-50, canvas.height/2);
-        context.scale(1, -1);
-            //this block of functions draw alphabets
-            {
-                drawLetters(localTime - 3500)
-            }
-        //drawTestCurve(pointSets1);
-        //drawTestCurve(pointSets2);
-        //drawTestCurve(pointSets3);
-        // drawTestCurve(pointSets4);
-
-
-        context.restore(); 
-        animationID = requestAnimationFrame(draw);
+  function draw(timestamp) {
+    if (startTimestamp === null) {
+      startTimestamp = timestamp;
     }
 
-    let mouseOption1 = [[-0.67, -56.375], [-14.67, -57.375], [-28.67, -57.375]]
-    let mouseOption2 = [[16, -47.386], [-11, -77.39], [-40, -49.36]]
-    let mouseOption3 = [[10,-55.39], [-13, -35.39], [-39, -55.39]]
-    let mouseOption4 = [[17,-56.39], [8, -75.39], [-9, -73.39]]
-    let mouses = [mouseOption1, mouseOption2, mouseOption3, mouseOption4]
-    let mouseIndex = 0;
-    let mouseClick = false
+    const localTime = timestamp - startTimestamp;
+    updatePortraitPlacement(runtime, localTime);
 
-    canvas.onclick = () =>
-    {
-        mouseClick = true;
-        mouseIndex += 1;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    context.save();
+    context.translate(runtime.centerX + 50, runtime.centerY);
+    context.scale(runtime.scaleX, runtime.scaleY);
+
+    const decomposeProgress = getDecomposeProgress();
+
+    if (decomposeProgress > 0.01) {
+      drawDecomposingPortrait(context, runtime, canvas, decomposeProgress);
+      if (DEBUG_GUIDES) {
+        drawDecomposeGuideCurves(context, runtime, canvas);
+      }
+    } else {
+      drawFace(context, runtime, localTime);
+      drawEyes(context, canvas, localTime);
+      drawHat(context, runtime, localTime);
+      drawMouth(context, runtime, localTime);
     }
 
-
-    let HMovingCurveSet = [[canvas.width, canvas.height], [82.67, -57.375] , [-400,200], [300,0]]
-    let HstaticCurve = [[[82.67, -54.375], [80, -90.375], [82.67, -127.375]], 
-    [[80, -90.375],[92, -90.375],[124.67, -90.375]], 
-    [[122.67, -57.375], [124.67, -90.375], [122.67, -127.375]]]
-
-    let iMovingCurveSet = [[canvas.width, Math.random(0, -canvas.height)], [114.67, -116.7] , [-50,-200], [-100,-60]]
-    let istaticCurve = [[iMovingCurveSet[iMovingCurveSet.length-3], [110.67, -126.375], [103.67, -131.375]],
-    [[104.67, -130.375], [90.67, -141.7],[102.67, -116.7]], 
-    [[101.67, -117.7], [105.67, -110.7], [106.67, -103.375]],
-    [[106.67, -104.7], [105.67, -91.7], [91.67, -105.708]],
-    [[84.33, -110.7], [102.33, -96.7], [93.33, -91.7]]]
-
-
-    let IMovingCurveSet = [[-canvas.width, Math.random(0, -canvas.height)], [7.67, -140.71] , [300,300], [300,-100]]
-    let IstaticCurve = [[IMovingCurveSet[iMovingCurveSet.length-3], [28.67, -149.71], [50.67, -149.71]],
-    [[27.33, -149.708], [28.33, -210.7], [32.33, -220.708]],
-    [[-10.67, -223], [42.67,-219.05], [281.33, -215.05]]]
-
-    let MMovingCurveSet = [[Math.random(0, -canvas.width), -canvas.height], [65.67, -218] , [300 ,200], [300,-400]]
-    let MstaticCurve = [[MMovingCurveSet[MMovingCurveSet.length-3], [68.67, -186.385], [85.67, -218.39]],
-    [[27.33, -169.708], [28.33, -210.7], [32.33, -220.708]],
-    [[87.66, -218.39], [97.33, -180.38], [103.33, -218.39]]]
-
-    let KMovingCurveSet = [[-canvas.width, canvas.height*2], [156, -216.06] , [-300,-50], [0,400]]
-    let KstaticCurve = [[KMovingCurveSet[KMovingCurveSet.length-3], [155.67, -181.04], [151.67, -124.04]],
-    [[154.67, -167.04],[183.67, -155.04],[188.67, -126.04]],
-    [[154.67, -166.04],[194.67, -192.04],[195.67, -216.04]]]
-
-
-    let YMovingCurveSet = [[(Math.random(0, canvas.width), -canvas.height)], [250.67, -216.72], [-300,50], [0,300]]
-    let YstaticCurve = [[YMovingCurveSet[YMovingCurveSet.length-3], [250, -184.71], [249.67, -164.71]],
-    [[249, -165.71],[240.67, -121.71],[214.67, -150.71]],
-    [[249, -165.71],[266.67, -88.71],[288.67, -132.71]]]
-
-    let HPointsTodraw = [[],[],[]]
-    let iPointsTodraw = [[],[],[],[],[]]
-    let IPointsTodraw = [[],[],[]]
-    let MPointsTodraw = [[],[],[]]
-    let KPointsTodraw = [[],[],[]]
-    let YPointsTodraw = [[],[],[]]
-
-    let HPoints = []
-    let iPoints = [];
-    let IPoints = [];
-    let MPoints = [];
-    let KPoints = [];
-    let YPoints = [];
-    let capacity = 20;
-    function drawLetters(time)
-    {
-        context.save()
-        
-        context.save()
-
-        context.translate(15, 40)
-        drawMovingHermiteCurve(2000, 1500, time, HMovingCurveSet,HPoints)
-        drawLettersH(time-1500, 0.8, HPointsTodraw, HstaticCurve)
-        context.restore();
-
-        context.save()
-        context.translate(75, 50);
-        drawMovingHermiteCurve(2000, 1500, time, iMovingCurveSet,iPoints)
-        drawLettersH(time-1500, 0.8, iPointsTodraw, istaticCurve)
-        context.restore();
-
-
-
-        drawMovingHermiteCurve(2000, 1500, time-2500, IMovingCurveSet,IPoints)
-        drawLettersH(time-4000, 1, IPointsTodraw, IstaticCurve)
-
-        drawMovingHermiteCurve(2000, 1000, time - 2500, MMovingCurveSet,MPoints)
-        drawLettersH(time-3500, 1, MPointsTodraw, MstaticCurve)
-
-        context.save()
-        //context.translate(0, 30)
-        //context.scale(0.5, 0.5)
-        drawMovingHermiteCurve(4000, 3000, time-3000, KMovingCurveSet,KPoints) 
-        drawLettersH(time-6000, 1.25, KPointsTodraw, KstaticCurve)
-        context.restore()
-
-        context.save();
-        //context.translate(0,30)
-        //context.scale(0.5, 0.5  )
-        drawMovingHermiteCurve(4000, 3000, time -3000, YMovingCurveSet,YPoints)
-        drawLettersH(time-6000, 1.25, YPointsTodraw, YstaticCurve)
-        context.restore();
-    
-
-        if(time > 5000)
-        {
-            context.beginPath()
-            //context.arc(100, -50, 3.5, 0, 2* Math.PI)
-            //context.fill();
-            context.beginPath()
-            context.moveTo(69,-158.7)
-            context.lineTo(63.33, -172.7)
-            context.lineWidth = 4;
-            context.stroke();
-        }
-        context.restore();
-    }
-
-
-
-    function drawLettersH(time, lastingTime, pointsToDraw, staticCurve)
-    {
-        //letter H composed by three part | - |
-        if(time/1000 > 0 && time/1000 <= lastingTime)
-            {        
-                let HFunctions = []
-                createHatFunctions(staticCurve, HFunctions);
-                
-                let arcLengths = [] //reset arclengths
-                calculateArcLengths(HFunctions, arcLengths);
-                //calculate totalLength for reparametrization
-                let totalDistance = 0;
-            
-                arcLengths.forEach((arcLength) =>{
-                    totalDistance += arcLength[0]
-                })
-        
-                let t = time / 1000 //convert to second
-                let s = t * totalDistance / lastingTime    //how fard does traveled at time t
-        
-                let currentArcLength = 0;
-                let previousLength = 0;
-                for(let i = 0; i < arcLengths.length; ++i)
-                {
-                    currentArcLength += arcLengths[i][0];
-                
-                    if(s <= currentArcLength)
-                    {
-                        let u = convertStoU((s - previousLength), i, arcLengths);
-                        pointsToDraw[i].push(HFunctions[i](u));
-                        break;
-                    }
-                    previousLength = currentArcLength;
-                }
-
-    
-                pointsToDraw.forEach((points)=>{
-                    if(points.length != 0)
-                    {
-                        drawHatDynamically(points)
-                    }
-                })
-        }else if(time/1000 > 0)
-        {
-            drawStaticSet(staticCurve);
-        }
-    }
-
-
-    function drawMovingHermiteCurve(totalTime, movingTime, currTime, controlPoints, points)
-    {
-        if(currTime >= 0 && currTime <= totalTime)
-            {
-        //set up the starting point(curve start) and end point (where the letter locates)
-        let HFunction = []; 
-        createHermite(controlPoints, HFunction)
-            
-        //calculate the arcLength, and do numerical approximation
-        let arcInfo = []; 
-            calculateArcLengths(HFunction, arcInfo);
-        //depends on time stamp,draw 10 or 20 points each time
-        let totalDistance = arcInfo[0][0];
-        
-        let t = currTime / 1000; // convert ms to second, and also -4000 is that I want to begin with 0
-        
-        let s = t * totalDistance / (movingTime/1000) //the process lasts 2 seconds
-        
-        let u = convertStoU(s, 0, arcInfo);
-        
-        let currPoint = HFunction[0](u);
-        if(points.length >= capacity)
-        {
-            //delete the tail points, which is the first elemnt
-            points.shift();
-        }
-            //when the curve touches the end point, diminishing (i.e, delete the last few points each frame)
-            points.push(currPoint);
-            drawHatDynamically(points);
-        }
-    }
-    /**
-     * CreateHermite -- given end and start points with their tangent, randomly generate a curve
-     * the curve is: (2t^3- 3t^2+1)P0 + (-2t^2+3t^2)P1 + (t^3-2t^2+t)M0+(t^3 - t^2)M1
-     * @param {Array} controlPoints 
-     * @param {Array} functionSet 
-     */
-    function createHermite (controlPoints, functionSet)
-    {
-        let startPoint = controlPoints[0];
-        let endPoint = controlPoints[1];
-        let startTangent = controlPoints[2];
-        let endTangent = controlPoints[3];
-        functionSet.push((u)=>{
-                return [(2*Math.pow(u,3)-3*Math.pow(u,2) + 1)*startPoint[0] + 
-                (-2*Math.pow(u,3) + 3*Math.pow(u,2))*endPoint[0] + 
-                (Math.pow(u,3)- 2*Math.pow(u,2)+u)*startTangent[0] + (Math.pow(u,3)-Math.pow(u,2))*endTangent[0],
-                (2*Math.pow(u,3)-3*Math.pow(u,2) + 1)*startPoint[1] + 
-                (-2*Math.pow(u,3) + 3*Math.pow(u,2))*endPoint[1] + 
-                (Math.pow(u,3)- 2*Math.pow(u,2)+u)*startTangent[1] + (Math.pow(u,3)-Math.pow(u,2))*endTangent[1]]
-            })
-    }
-
-    function drawTestCurve(pointSets)
-    {
-        context.save();
-        context.strokeStyle = "black"
-        context.beginPath();
-        context.arc(pointSets[0][0], pointSets[0][1], pointRadius, 0, 2 * Math.PI)
-        context.stroke();
-        context.beginPath();
-        context.arc(pointSets[1][0], pointSets[1][1], pointRadius, 0, 2 * Math.PI)
-        context.stroke();
-        context.beginPath();
-        context.arc(pointSets[2][0], pointSets[2][1], pointRadius, 0, 2 * Math.PI)
-        context.stroke();
-        context.beginPath();
-        context.moveTo(pointSets[0][0], pointSets[0][1], pointRadius, 0, 2 * Math.PI)
-        context.quadraticCurveTo(pointSets[1][0], pointSets[1][1], pointSets[2][0], 
-            pointSets[2][1])
-        context.stroke()
-
-        context.restore();
-    }
-
-    let pointRadius = 5;
-    let pointSets1 = [
-        [0, 0],
-        [50, 0],
-        [-50, 0]
-    ]
-    let pointSets2 = [
-        [0, -20],
-        [50, -20],
-        [-50, -20]
-    ]
-
-    let pointSets3 = [
-        [0, 20],
-        [50, 20],
-        [-50, 20]
-    ]
-
-    let pointSets4 = [
-        [0, 40],
-        [50, 40],
-        [-50, 40]
-    ]
-    let testPointSets = [pointSets1, pointSets2, pointSets3, pointSets4]
-    let pointIndex = 0;
-    let setIndex = 0;
-    let isDragging = false;
-    canvas.onmousedown = (event)=>{
-        let mouseX = event.clientX - canvas.getBoundingClientRect().left;
-        let mouseY = event.clientY - canvas.getBoundingClientRect().top;
-
-        mouseX = (mouseX - (canvas.width/2-50)) / 1;
-        mouseY = (mouseY - (canvas.height/2)) / -1;
-
-        testPointSets.forEach((pointset, sIndex) =>{
-            pointset.forEach((point, index)=>
-                {
-                    if(mouseX > point[0] - pointRadius&&
-                        mouseX < point[0] + pointRadius &&
-                        mouseY > point[1] - pointRadius &&
-                        mouseY < point[1] + pointRadius
-                    )
-                    {
-                        //the mouse is within the point
-                        if(!isDragging)
-                        {
-                            isDragging = true;
-                        }
-            
-                        pointIndex = index;
-                        setIndex = sIndex;
-                    }
-                })
-        })
-    }
-
-    canvas.onmousemove = (event)=>{
-        if(isDragging)
-        {
-            let mouseX = event.clientX - canvas.getBoundingClientRect().left;
-            let mouseY = event.clientY - canvas.getBoundingClientRect().top;
-
-            mouseX = (mouseX - (canvas.width / 2 - 50)) / 1;
-            mouseY = (mouseY - (canvas.height / 2)) / -1;
-
-            testPointSets[setIndex][pointIndex][0] = mouseX;
-            testPointSets[setIndex][pointIndex][1]  = mouseY;
-
-            console.log("Curve: " + setIndex)
-            console.log("Start Point: X: " + testPointSets[setIndex][0][0] + " Y: " + testPointSets[setIndex][0][1])
-            console.log("Control Point: X: " + testPointSets[setIndex][1][0] + " Y: " +testPointSets[setIndex][1][1])
-            console.log("End Point: X: " + testPointSets[setIndex][2][0]+ " Y: " + testPointSets[setIndex][2][1])
-        }
-    }
-
-    canvas.onmouseup = ()=>{
-        isDragging = false;
-        pointIndex = 0;
-    }
-
-
-    let arcLengths = [] //this table used to record the length of each arc 
-    // and numerical points within each curve
-
-    let pointsToDraw = []
-
-    let hatFunctions = []
-
-    let LeftSidePpoints = [[-120.67, 88.96], [-126.67, 62.96], [-100.67, 23.96]]
-    let ButtomSidePpoints = [[-100.67, 23.96], [2.67, 7.96], [116.67, 33.96]]
-    let RightSidePpoints = [[116.67, 33.96], [142.33, 52.29], [141.33, 88.29]]
-    let UpSidePpoints = [[141.33, 88.29], [-1.33, 128.96], [-120.67, 88.96]]
-    let TopSidePpoints = [[-110.67, 88.96], [-1.33, 299.29], [120.67, 93.29]]
-    let controlPointSets = [LeftSidePpoints, ButtomSidePpoints, RightSidePpoints, 
-        UpSidePpoints]
-
-    let topHatPoints = []; 
-    function drawHat(localTime)
-    {
-        if(localTime/1000 <= 2)
-        {
-                    
-            hatFunctions = []
-            createHatFunctions(controlPointSets, hatFunctions);
-            arcLengths = [] //reset arclengths
-            calculateArcLengths(hatFunctions, arcLengths);
-            //calculate totalLength for reparametrization
-            let totalDistance = 0;
-        
-            arcLengths.forEach((arcLength) =>{
-                totalDistance += arcLength[0]
-            })
-
-        
-            let t = localTime / 1000 //convert to second
-            let s = t * totalDistance / 2     //how fard does traveled at time t
-
-            
-            let currentArcLength = 0;
-            let previousLength = 0;
-            for(let i = 0; i < arcLengths.length; ++i)
-            {
-                currentArcLength += arcLengths[i][0];
-            
-                if(s <= currentArcLength)
-                {
-                    let u = convertStoU((s - previousLength), i, arcLengths);
-                    pointsToDraw.push(hatFunctions[i](u));
-                    break;
-                }
-                previousLength = currentArcLength;
-            }
-            drawHatDynamically(pointsToDraw);
-        }else if(localTime /1000 <= 3)
-        {
-
-            controlPointSets.forEach((controlPoint)=>
-                {
-                    context.save();
-                    context.beginPath();
-                    context.moveTo(controlPoint[0][0],controlPoint[0][1] )
-                    context.quadraticCurveTo(controlPoint[1][0], controlPoint[1][1], 
-                        controlPoint[2][0], controlPoint[2][1])
-                    context.strokeStyle = "black";
-                    context.lineWidth = 4;
-                    context.stroke();
-                    context.restore()
-                })
-            
-            //draw the top dynamically while draw other parts statically
-            let topControlSet = [TopSidePpoints];
-            let topHatFunction = [];
-            let topArcLength = []
-            createHatFunctions(topControlSet, topHatFunction);
-            
-            calculateArcLengths(topHatFunction, topArcLength);
-            let totalDistance = topArcLength[0][0] //the curve total length
-            let t = (localTime - 2000) / 1000 //convert ms to s
-            let s = t * totalDistance;
-        
-        
-            //points at this t, which will conected later
-            let u = convertStoU(s, 0, topArcLength);
-
-            topHatPoints.push(topHatFunction[0](u));
-            
-            drawHatDynamically(topHatPoints);
-
-        }else
-        {
-            drawStaticSet(controlPointSets)
-            drawHatTop();
-        }
-
-
-    }
-    function drawStaticSet(controlPointSets)
-    {
-        controlPointSets.forEach((controlPoint)=>
-            {
-                context.save();
-                context.beginPath();
-                context.moveTo(controlPoint[0][0],controlPoint[0][1] )
-                context.quadraticCurveTo(controlPoint[1][0], controlPoint[1][1], 
-                    controlPoint[2][0], controlPoint[2][1])
-                context.strokeStyle = "black";
-                context.lineWidth = 4;
-                context.stroke();
-                context.restore()
-            })
-    }
-
-    /**
-     * drawHatDynamically -- Takes 2-D array and connects all point in the array
-     * 
-     * @param{Array} points -- 2-D array contains all points coordinatres
-     */
-    function drawHatDynamically(points)
-    {
-
-            context.save();
-            context.beginPath();
-            context.moveTo(points[0][0],points[0][1])
-            for(let i = 1; i < points.length; ++i)
-            {
-                context.lineTo(points[i][0], points[i][1])
-            }
-            context.strokeStyle = "black";
-            context.lineWidth = 4;
-            context.stroke();
-            context.restore();
-    }
-
-
-    /**
-     * createHatFunctions -- This function stores bezier curve functions into the functionArray
-     * 
-     * @param{Array} controPointSet -- controlPoints
-     * @param{Array} functionArray -- where to store the functions
-     */
-    function createHatFunctions(controlPointSet, functionArray)
-    {
-        controlPointSet.forEach((controlPoints)=>{
-            functionArray.push(function(u){
-                let P0 = controlPoints[0];
-                let P1 = controlPoints[1];
-                let P2 = controlPoints[2]
-                return [Math.pow((1-u),2)*P0[0] + 2*(1-u)*u*P1[0] + Math.pow(u, 2)*P2[0], 
-                Math.pow((1-u),2)*P0[1] + 2*(1-u)*u*P1[1] + Math.pow(u, 2)*P2[1]]
-            })
-        })
-    }
-
-
-    /**
-     * calculateArcLengths -- for each function in the functions array, 
-     * we calculate the length of the curve (each function represents a curve)
-     * and stored in the arcLengths array
-     * 
-     * @param{Array} functions -- Function of curves
-     * @param{Array} arcLengths -- array to store curve info
-     */
-    function calculateArcLengths(functions, arcLengths)
-    {
-        functions.forEach((Function)=>{
-            arcLengths.push(numericalMeasurement(Function)) //pass each curve function to numerical Measurement
-        })
-    }
-
-    /**
-     * convertStoU -- a function that can map distance to u which ranges [0, 1]
-     * 
-     * @param{Number} s --distance tralved
-     * @param{Number} segMentNo -- which curve is currently at
-     * @param{Number} arcLengths -- arrays store all the curves
-     */
-    function convertStoU(s, segMentNo, arcLengths){
-        let segment = arcLengths[segMentNo]; //[arclength, [table]]
-        let u = 0;
-        //segment[1] is the table that records points
-        for(let i = 0; i < segment[1].length-1; ++i)
-        {
-        let p0 = segment[1][i].arcLength;
-        let t0 = segment[1][i].t;
-        let p1 = segment[1][i+1].arcLength;
-        let t1 = segment[1][i+1].t;
-        if(s >= p0 && s <= p1)
-        {
-            //we need to interpolate to find the u
-            let ratio = (s - p0) / (p1 - p0);
-    
-            u = t0 + ratio*(t1-t0)
-            return u;
-        }
-        }
-        return 1;
-    }   
-
-    /** 
-     * numericalMeasurement -- A general function which approximates arc length by ploting
-     * appropriate number of points. 
-     * 
-     * @param{Function} curve function
-     * @returns{Array} the arclength and table of points
-
-    */
-    function numericalMeasurement(curveFunction)
-    {
-        let previous;
-        let arcLength = 0;
-        let tableOfPoints = []
-        for(let i = 0; i < 1; i += 1/100)
-        {
-            let current = curveFunction(i); //calculate [x,y] at the point i
-            if(previous != undefined)
-            {
-                let distance = Math.sqrt(
-                    Math.pow((current[0] - previous[0]),2) +
-                    Math.pow((current[1] - previous[1]), 2)
-                )
-
-                arcLength += distance
-            }
-
-            let tableElement = {t: i, arcLength: arcLength}
-            tableOfPoints.push(tableElement)
-            previous = current
-        }
-
-        return [arcLength, tableOfPoints];
-    }
-
-
-
-    function drawHatTop()
-    {
-        context.save();
-        context.beginPath();
-        context.moveTo(TopSidePpoints[0][0],TopSidePpoints[0][1] )
-        context.quadraticCurveTo(TopSidePpoints[1][0], TopSidePpoints[1][1], 
-            TopSidePpoints[2][0], TopSidePpoints[2][1])
-        context.strokeStyle = "black";
-        context.lineWidth = 4;
-        context.stroke();
-        context.fill();
-        context.restore()
-    }
-    function drawEyes(localTime)
-    {
-        context.save()
-        drawRightEye(localTime);
-        //draw left eyes
-        context.restore()
-
-        context.save()
-        //draw right eyes
-        drawLeftEye(localTime)
-        context.restore()
-    }
-
-    let eyeCoefficientx//where the left eye located
-    let eyeCoefficienty = Math.PI
-    function drawRightEye(localTime)
-    {
-        //should be a localTime
-        
-        //calculate eyeCoefficientx
-        //target X(1) = -25
-
-        eyeCoefficientx = -25 + (canvas.width/2 +10)
-        let t = (localTime) / 1000; //limit to 0 - 1 range 
-        context.strokeStyle = "black";
-        let eyePosition
-        if(t <= 1)
-        {
-            eyePosition = eyeMovement(t, 1);
-            //draw the eye at this motion
-        }else
-        {
-            eyePosition = eyeMovement(1, 1);
-        }
-        context.beginPath()
-        context.arc(eyePosition[0], eyePosition[1], 5, 0, 2 * Math.PI)
-        context.stroke();
-        context.fill();
-    }
-
-    function drawLeftEye(localTime)
-    {
-        //should be a localTime
-        
-        //calculate eyeCoefficientx
-        //target X(1) = -25
-
-        eyeCoefficientx = (canvas.width/2+10) - 55 
-        let t = (localTime) / 1000; //limit to 1 - 2 range 
-        context.strokeStyle = "black";
-        let eyePosition 
-        if(t <=1 )
-        {
-            eyePosition = eyeMovement(0, 0);
-        }
-        else if(t > 1 && t <= 2)
-        {
-            eyePosition = eyeMovement(t-1, 0);
-            //draw the eye at this motion
-        }else
-        {
-            eyePosition = eyeMovement(1, 0);
-        }
-        context.beginPath()
-        context.arc(eyePosition[0], eyePosition[1], 5, 0, 2 * Math.PI)
-        context.stroke();
-        context.fill();
-    }
-
-    function eyeMovement(t, isLeft)
-    {
-        let amplification = 20;
-        let xPosition
-        let yPosition
-        if(isLeft)
-        {
-            xPosition = (-canvas.width/ 2 - 10) + eyeCoefficientx*t
-            yPosition = (amplification*Math.sin(eyeCoefficienty*t*4))
-        }else{
-            xPosition = (canvas.width/2 + 60) - (eyeCoefficientx + 50)*t
-            yPosition = (amplification*Math.sin(eyeCoefficienty*t*4))
-        }
-
-        return [xPosition, yPosition]
-    }
-
-    let startPoint = [10, 40]
-    let previousPoint = startPoint
-    let coeffX = 100//how to avoid the curve to be different for different devices
-    let coeffY = 140;
-    let points = [startPoint]
-    function drawFace(localTime)
-    {
-        let t = (localTime / 1000) - 1;
-        //change the coordinate system to normal
-        context.save()
-        if(t < 1)
-        {
-            drawFaceDynamic(t); //we apply drawFace function
-        }else
-        {
-            //draw the complete parabola
-            drawStatic();
-        }
-        context.restore();
-    }
-
-
-    function drawStatic()
-    {
-        context.strokeStyle = "black"
-        context.lineWidth = 3;
-        context.moveTo(points[0][0], points[0][1])
-        context.beginPath();
-        for(let i = 1; i < points.length; ++i)
-        {
-            context.lineTo(points[i][0], points[i][1])
-        }
-        context.stroke();
-
-    }
-
-    let facePreviousT = 0
-    function drawFaceDynamic(t)
-    {
-        //get the current Point
-        //calculate the step x
-        let currentX = previousPoint[0] + coeffX * (t - facePreviousT);
-        let currentY =  previousPoint[1] + (2*coeffY*facePreviousT)*(t - facePreviousT);
-
-        facePreviousT = t;
-
-        points.push([currentX, currentY]);
-        context.strokeStyle = "black"
-        context.lineWidth = 3;
-
-        context.moveTo(points[0][0], points[0][1])
-        context.beginPath();
-        //make connect to all the points in the list
-        for(let i = 1; i < points.length; ++i)
-        {
-            context.lineTo(points[i][0], points[i][1])
-        }
-        context.stroke();
-        previousPoint = [currentX, currentY] //update previous point
-
-    }
+    context.restore();
 
     animationID = requestAnimationFrame(draw);
+  }
 
-    return () => {
-        cancelAnimationFrame(animationID)
-        console.log("Animation canceled");
-    };
+  canvas.onclick = () => {
+    runtime.mouthActive = true;
+    runtime.mouthIndex += 1;
+  };
+
+  animationID = requestAnimationFrame(draw);
+
+  return () => {
+    cancelAnimationFrame(animationID);
+    canvas.onclick = null;
+  };
+}
+
+export const protraitRender = portraitRender;
+
+function updatePortraitPlacement(runtime, localTime) {
+  runtime.previousTime = localTime / 1000;
+}
+
+function drawFace(context, runtime, localTime) {
+  const t = localTime / 1000 - 1;
+
+  if (t < 1) {
+    drawFaceDynamically(context, runtime, t);
+    return;
+  }
+
+  drawPolyline(context, runtime.facePoints, STYLE.faceWidth);
+}
+
+function drawFaceDynamically(context, runtime, t) {
+  const { horizontalVelocity, verticalCurve } = PORTRAIT_PATHS.face;
+  const delta = t - runtime.facePreviousTime;
+  const currentX = runtime.facePreviousPoint[0] + horizontalVelocity * delta;
+  const currentY =
+    runtime.facePreviousPoint[1] + 2 * verticalCurve * runtime.facePreviousTime * delta;
+
+  runtime.facePreviousTime = t;
+  runtime.facePreviousPoint = [currentX, currentY];
+  runtime.facePoints.push(runtime.facePreviousPoint);
+
+  drawPolyline(context, runtime.facePoints, STYLE.faceWidth);
+}
+
+function drawEyes(context, canvas, localTime) {
+  drawEye(context, getEyePosition(canvas, localTime, true));
+  drawEye(context, getEyePosition(canvas, localTime, false));
+}
+
+function getEyePosition(canvas, localTime, isLeftEye) {
+  const t = localTime / 1000;
+  const easedT = Math.min(Math.max(isLeftEye ? t : t - 1, 0), 1);
+  const wave = 20 * Math.sin(Math.PI * easedT * 4);
+
+  if (isLeftEye) {
+    const target = -25 + canvas.width / 2 + 10;
+    return [-canvas.width / 2 - 10 + target * easedT, wave];
+  }
+
+  const target = canvas.width / 2 + 10 - 55;
+  return [canvas.width / 2 + 60 - (target + 50) * easedT, wave];
+}
+
+function drawEye(context, position) {
+  context.save();
+  context.strokeStyle = STYLE.color;
+  context.beginPath();
+  context.arc(position[0], position[1], STYLE.eyeRadius, 0, 2 * Math.PI);
+  context.stroke();
+  context.fill();
+  context.restore();
+}
+
+function drawHat(context, runtime, localTime) {
+  const { brim, top } = PORTRAIT_PATHS.hat;
+
+  if (localTime <= 2000) {
+    drawCurvesByArcLength(context, brim, runtime.hatPoints, localTime, 2000);
+    return;
+  }
+
+  if (localTime <= 3000) {
+    drawStaticCurves(context, brim);
+    drawCurvesByArcLength(context, [top], runtime.hatTopPoints, localTime - 2000, 1000);
+    return;
+  }
+
+  drawStaticCurves(context, brim);
+  drawStaticCurves(context, [top], true);
+}
+
+function drawMouth(context, runtime, localTime) {
+  if (localTime <= 7000 || !runtime.mouthActive) {
+    return;
+  }
+
+  const mouth =
+    PORTRAIT_PATHS.mouths[runtime.mouthIndex % PORTRAIT_PATHS.mouths.length];
+
+  context.save();
+  context.translate(20, 0);
+  drawQuadraticCurve(context, mouth, STYLE.faceWidth);
+  context.restore();
+}
+
+function drawDecomposingPortrait(context, runtime, canvas, progress) {
+  const strokes = createPortraitStrokes(runtime, canvas);
+
+  strokes.forEach((stroke, index) => {
+    drawDecomposingStroke(context, stroke, progress, index);
+  });
+}
+
+function drawDecomposeGuideCurves(context, runtime, canvas) {
+  const strokes = createPortraitStrokes(runtime, canvas);
+
+  context.save();
+  context.strokeStyle = "#c2410c";
+  context.lineWidth = 1.5;
+  context.setLineDash([8, 8]);
+
+  strokes.forEach((points, index) => {
+    const endPoint = points[points.length - 1];
+    const route = DECOMPOSE_ROUTES[index % DECOMPOSE_ROUTES.length];
+    const curveOffset = route.direction * route.curveDistance;
+    const controlPoint = [
+      endPoint[0] + curveOffset,
+      endPoint[1] - 120 - index * 12,
+    ];
+    const bottomEnd = [route.endX, route.endY];
+    const flowCurve = sampleQuadraticCurve([endPoint, controlPoint, bottomEnd], 60);
+    drawPolyline(context, flowCurve, 1.5);
+  });
+
+  context.restore();
+}
+
+function createPortraitStrokes(runtime, canvas) {
+  const { brim, top } = PORTRAIT_PATHS.hat;
+
+  return [
+    runtime.facePoints,
+    sampleQuadraticCurve(brim[0], 28),
+    sampleQuadraticCurve(brim[1], 28),
+    sampleQuadraticCurve(brim[2], 28),
+    sampleQuadraticCurve(top, 34),
+  ].filter((points) => points.length > 1);
+}
+
+function drawDecomposingStroke(context, points, progress, seed) {
+  const shrinkProgress = clamp(progress / 0.36, 0, 1);
+  const growProgress = clamp(progress / 0.32, 0, 1);
+  const moveProgress = clamp((progress - 0.34) / 0.66, 0, 1);
+  const remainingPoints = slicePolylineByProgress(points, shrinkProgress, 1);
+  const endPoint = points[points.length - 1];
+  const route = DECOMPOSE_ROUTES[seed % DECOMPOSE_ROUTES.length];
+  const curveOffset = route.direction * route.curveDistance;
+  const controlPoint = [
+    endPoint[0] + curveOffset,
+    endPoint[1] - 120 - seed * 12,
+  ];
+  const bottomEnd = [route.endX, route.endY];
+  const flowCurve = sampleQuadraticCurve([endPoint, controlPoint, bottomEnd], 60);
+  const visibleLength = 0.38;
+  const headProgress = interpolatePoint(
+    [0, 0],
+    [visibleLength, 0],
+    growProgress,
+  )[0] + moveProgress * (1 - visibleLength);
+  const vanishProgress = clamp((progress - 0.78) / 0.22, 0, 1);
+  const currentVisibleLength = visibleLength * (1 - vanishProgress);
+  const tailProgress = Math.max(0, headProgress - currentVisibleLength);
+  const movingPoints = slicePolylineByProgress(flowCurve, tailProgress, headProgress);
+
+  if (remainingPoints.length > 1) {
+    drawPolyline(context, remainingPoints, STYLE.lineWidth);
+  }
+
+  if (movingPoints.length > 1) {
+    drawPolyline(context, movingPoints, STYLE.lineWidth);
+  }
+}
+
+function sampleQuadraticCurve(curve, sampleCount) {
+  const curveFunction = createBezierFunctions([curve])[0];
+  const points = [];
+
+  for (let index = 0; index <= sampleCount; index += 1) {
+    points.push(curveFunction(index / sampleCount));
+  }
+
+  return points;
+}
+
+function slicePolylineByProgress(points, startProgress, endProgress) {
+  const arcLength = numericalMeasurementFromPoints(points);
+  const startDistance = arcLength.total * startProgress;
+  const endDistance = arcLength.total * endProgress;
+  const slicedPoints = [];
+  let previousLength = 0;
+
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const start = points[index];
+    const end = points[index + 1];
+    const segmentLength = Math.hypot(end[0] - start[0], end[1] - start[1]);
+    const currentLength = previousLength + segmentLength;
+
+    if (currentLength >= startDistance && previousLength <= endDistance) {
+      const segmentStart = Math.max(startDistance, previousLength);
+      const segmentEnd = Math.min(endDistance, currentLength);
+      const segmentStartRatio = (segmentStart - previousLength) / (segmentLength || 1);
+      const segmentEndRatio = (segmentEnd - previousLength) / (segmentLength || 1);
+      const startPoint = interpolatePoint(start, end, segmentStartRatio);
+      const endPoint = interpolatePoint(start, end, segmentEndRatio);
+
+      if (slicedPoints.length === 0) {
+        slicedPoints.push(startPoint);
+      }
+
+      slicedPoints.push(endPoint);
+    }
+
+    previousLength = currentLength;
+  }
+
+  return slicedPoints;
+}
+
+function numericalMeasurementFromPoints(points) {
+  let total = 0;
+
+  for (let index = 1; index < points.length; index += 1) {
+    total += Math.hypot(
+      points[index][0] - points[index - 1][0],
+      points[index][1] - points[index - 1][1],
+    );
+  }
+
+  return { total };
+}
+
+function interpolatePoint(start, end, progress) {
+  return [
+    start[0] + (end[0] - start[0]) * progress,
+    start[1] + (end[1] - start[1]) * progress,
+  ];
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+
+function drawLetters(context, runtime, time) {
+  runtime.letters.forEach((letter) => {
+    const movingCurve = [
+      letter.start,
+      letter.end,
+      letter.tangents[0],
+      letter.tangents[1],
+    ];
+
+    context.save();
+    context.translate(letter.origin[0], letter.origin[1]);
+    drawMovingHermiteCurve(
+      context,
+      letter.moveTotalMs,
+      letter.movePathMs,
+      time - letter.moveOffsetMs,
+      movingCurve,
+      letter.movingPoints,
+    );
+    drawProgressiveCurves(
+      context,
+      time - letter.drawDelayMs,
+      letter.drawDurationSeconds,
+      letter.staticPoints,
+      letter.curves,
+    );
+    context.restore();
+  });
+
+  if (time > 5000) {
+    context.beginPath();
+    context.moveTo(69, -158.7);
+    context.lineTo(63.33, -172.7);
+    context.lineWidth = STYLE.lineWidth;
+    context.strokeStyle = STYLE.color;
+    context.stroke();
+  }
+}
+
+function drawProgressiveCurves(
+  context,
+  time,
+  durationSeconds,
+  pointsToDraw,
+  curves,
+) {
+  const seconds = time / 1000;
+
+  if (seconds <= 0) {
+    return;
+  }
+
+  if (seconds > durationSeconds) {
+    drawStaticCurves(context, curves);
+    return;
+  }
+
+  const curveFunctions = createBezierFunctions(curves);
+  const arcLengths = calculateArcLengths(curveFunctions);
+  const totalDistance = arcLengths.reduce(
+    (distance, arcLength) => distance + arcLength.total,
+    0,
+  );
+  const traveledDistance = seconds * totalDistance / durationSeconds;
+  let currentArcLength = 0;
+  let previousLength = 0;
+
+  for (let index = 0; index < arcLengths.length; index += 1) {
+    currentArcLength += arcLengths[index].total;
+
+    if (traveledDistance <= currentArcLength) {
+      const u = convertDistanceToU(
+        traveledDistance - previousLength,
+        index,
+        arcLengths,
+      );
+      pointsToDraw[index].push(curveFunctions[index](u));
+      break;
+    }
+
+    previousLength = currentArcLength;
+  }
+
+  pointsToDraw.forEach((points) => drawPolyline(context, points, STYLE.lineWidth));
+}
+
+function drawMovingHermiteCurve(
+  context,
+  totalTime,
+  movingTime,
+  currentTime,
+  controlPoints,
+  points,
+) {
+  if (currentTime < 0 || currentTime > totalTime) {
+    return;
+  }
+
+  const hermiteFunction = createHermiteFunction(controlPoints);
+  const arcInfo = calculateArcLengths([hermiteFunction]);
+  const totalDistance = arcInfo[0].total;
+  const traveledDistance = currentTime / 1000 * totalDistance / (movingTime / 1000);
+  const u = convertDistanceToU(traveledDistance, 0, arcInfo);
+
+  if (points.length >= TRAIL_CAPACITY) {
+    points.shift();
+  }
+
+  points.push(hermiteFunction(u));
+  drawPolyline(context, points, STYLE.lineWidth);
+}
+
+function drawCurvesByArcLength(context, curves, points, currentTime, totalTime) {
+  const curveFunctions = createBezierFunctions(curves);
+  const arcLengths = calculateArcLengths(curveFunctions);
+  const totalDistance = arcLengths.reduce(
+    (distance, arcLength) => distance + arcLength.total,
+    0,
+  );
+  const traveledDistance = currentTime / 1000 * totalDistance / (totalTime / 1000);
+  let currentArcLength = 0;
+  let previousLength = 0;
+
+  for (let index = 0; index < arcLengths.length; index += 1) {
+    currentArcLength += arcLengths[index].total;
+
+    if (traveledDistance <= currentArcLength) {
+      const u = convertDistanceToU(
+        traveledDistance - previousLength,
+        index,
+        arcLengths,
+      );
+      points.push(curveFunctions[index](u));
+      break;
+    }
+
+    previousLength = currentArcLength;
+  }
+
+  drawPolyline(context, points, STYLE.lineWidth);
+}
+
+function drawStaticCurves(context, curves, fill = false) {
+  curves.forEach((curve) => drawQuadraticCurve(context, curve, STYLE.lineWidth, fill));
+}
+
+function drawQuadraticCurve(context, curve, lineWidth, fill = false) {
+  context.save();
+  context.beginPath();
+  context.moveTo(curve[0][0], curve[0][1]);
+  context.quadraticCurveTo(curve[1][0], curve[1][1], curve[2][0], curve[2][1]);
+  context.strokeStyle = STYLE.color;
+  context.lineWidth = lineWidth;
+  context.stroke();
+
+  if (fill) {
+    context.fill();
+  }
+
+  context.restore();
+}
+
+function drawPolyline(context, points, lineWidth) {
+  if (points.length === 0) {
+    return;
+  }
+
+  context.save();
+  context.beginPath();
+  context.moveTo(points[0][0], points[0][1]);
+
+  for (let index = 1; index < points.length; index += 1) {
+    context.lineTo(points[index][0], points[index][1]);
+  }
+
+  context.strokeStyle = STYLE.color;
+  context.lineWidth = lineWidth;
+  context.stroke();
+  context.restore();
+}
+
+function createBezierFunctions(curves) {
+  return curves.map((curve) => (u) => {
+    const [p0, p1, p2] = curve;
+    const inverse = 1 - u;
+
+    return [
+      inverse ** 2 * p0[0] + 2 * inverse * u * p1[0] + u ** 2 * p2[0],
+      inverse ** 2 * p0[1] + 2 * inverse * u * p1[1] + u ** 2 * p2[1],
+    ];
+  });
+}
+
+function createHermiteFunction(controlPoints) {
+  const [startPoint, endPoint, startTangent, endTangent] = controlPoints;
+
+  return (u) => [
+    (2 * u ** 3 - 3 * u ** 2 + 1) * startPoint[0] +
+      (-2 * u ** 3 + 3 * u ** 2) * endPoint[0] +
+      (u ** 3 - 2 * u ** 2 + u) * startTangent[0] +
+      (u ** 3 - u ** 2) * endTangent[0],
+    (2 * u ** 3 - 3 * u ** 2 + 1) * startPoint[1] +
+      (-2 * u ** 3 + 3 * u ** 2) * endPoint[1] +
+      (u ** 3 - 2 * u ** 2 + u) * startTangent[1] +
+      (u ** 3 - u ** 2) * endTangent[1],
+  ];
+}
+
+function calculateArcLengths(functions) {
+  return functions.map((curveFunction) => numericalMeasurement(curveFunction));
+}
+
+function numericalMeasurement(curveFunction) {
+  let previous;
+  let total = 0;
+  const table = [];
+
+  for (let index = 0; index <= SAMPLE_COUNT; index += 1) {
+    const t = index / SAMPLE_COUNT;
+    const current = curveFunction(t);
+
+    if (previous !== undefined) {
+      total += Math.hypot(current[0] - previous[0], current[1] - previous[1]);
+    }
+
+    table.push({ t, arcLength: total });
+    previous = current;
+  }
+
+  return { total, table };
+}
+
+function convertDistanceToU(distance, segmentIndex, arcLengths) {
+  const segment = arcLengths[segmentIndex];
+
+  for (let index = 0; index < segment.table.length - 1; index += 1) {
+    const p0 = segment.table[index].arcLength;
+    const t0 = segment.table[index].t;
+    const p1 = segment.table[index + 1].arcLength;
+    const t1 = segment.table[index + 1].t;
+
+    if (distance >= p0 && distance <= p1) {
+      const ratio = (distance - p0) / (p1 - p0 || 1);
+      return t0 + ratio * (t1 - t0);
+    }
+  }
+
+  return 1;
 }

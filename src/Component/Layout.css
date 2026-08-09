@@ -1,0 +1,43 @@
+.site-layout {
+  background: #f6f7f4;
+}
+
+.timeline-section {
+  width: 100%;
+  max-width: 90vw;
+  min-height: 100vh;
+  margin: 0 auto;
+}
+
+.gallery-section {
+  width: 100%;
+  max-width: 90vw;
+  min-height: 100vh;
+  margin: 0 auto;
+}
+
+.site-navbar {
+  background: #f6f7f4;
+  box-shadow: 0 10px 26px rgba(23, 23, 23, 0.08);
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.site-navbar--visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.site-navbar .nav-link {
+  color: #171717;
+}
+
+.site-navbar .nav-link:hover,
+.site-navbar .nav-link:focus-visible {
+  color: #b83a2f;
+}
