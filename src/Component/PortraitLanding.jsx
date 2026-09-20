@@ -6,26 +6,26 @@ import "./PortraitLanding.css";
 
 const ABOUT_CALLOUTS = [
   {
-    id: "age",
-    text: "AGE_PLACEHOLDER",
-    labelX: 4,
+    id: "name",
+    text: "Hey, I'm Chenming, or you can call me Kryant, or KY, or whatever you want",
+    labelX: -15,
     labelY: 14,
   },
   {
-    id: "job",
-    text: "JOB_PLACEHOLDER",
+    id: "age",
+    text: "Going to be 21 -> 22 in Dec",
     labelX: 76,
     labelY: 18,
   },
   {
     id: "occupation",
-    text: "OCCUPATION_PLACEHOLDER",
-    labelX: 3,
+    text: "A student in the University of Washington now but looking for a job",
+    labelX: -15,
     labelY: 90,
   },
   {
     id: "interest",
-    text: "INTEREST_PLACEHOLDER",
+    text: "Tennis, Basketball, and Sleeping",
     labelX: 75,
     labelY: 86,
   },

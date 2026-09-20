@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { calendarRender, CANVAS_HEIGHT, CANVAS_WIDTH } from "../../Scripts/calendar";
+import { calendarRender, CALENDAR_CIRCLES, CANVAS_HEIGHT, CANVAS_WIDTH } from "../../Scripts/calendar";
 import "./Publication.css";
 
 function clamp(value, min, max) {
@@ -8,6 +8,7 @@ function clamp(value, min, max) {
 
 function CalendarCanvas({ progress }) {
   const canvasRef = useRef(null);
+  const circleLinksRef = useRef([]);
   const progressRef = useRef(progress);
   const [hoveredCircle, setHoveredCircle] = useState(null);
   const [cardCircle, setCardCircle] = useState(null);
@@ -21,6 +22,14 @@ function CalendarCanvas({ progress }) {
     if (!canvas) return undefined;
     return calendarRender(canvas, {
       getProgress: () => progressRef.current,
+      onCirclesFrame: (circles) => {
+        circles.forEach((circle, index) => {
+          const link = circleLinksRef.current[index];
+          if (!link) return;
+          link.style.top = `${((circle.currentY ?? circle.y) / CANVAS_HEIGHT) * 100}%`;
+          link.style.visibility = circle.visible ? "visible" : "hidden";
+        });
+      },
       onHoverCircle: (circle) => {
         if (circle) setCardCircle(circle);
         setHoveredCircle(circle);
@@ -38,6 +47,24 @@ function CalendarCanvas({ progress }) {
         role="img"
         aria-label="An animated smart scheduler with four floating circled calendar cells"
       />
+      {CALENDAR_CIRCLES.map((circle, index) => (
+        <a
+          key={circle.id}
+          ref={(element) => { circleLinksRef.current[index] = element; }}
+          className="scheduler-circle-link"
+          href={circle.href}
+          aria-label={`Open Smart Scheduler — calendar circle ${index + 1}`}
+          style={{
+            left: `${(circle.x / CANVAS_WIDTH) * 100}%`,
+            top: `${(circle.y / CANVAS_HEIGHT) * 100}%`,
+            visibility: "hidden",
+          }}
+          onPointerEnter={() => { setCardCircle(circle); setHoveredCircle(circle); }}
+          onPointerLeave={() => setHoveredCircle(null)}
+          onFocus={() => { setCardCircle(circle); setHoveredCircle(circle); }}
+          onBlur={() => setHoveredCircle(null)}
+        />
+      ))}
       <div
         className={`scheduler-placeholder-card ${hoveredCircle ? "scheduler-placeholder-card--visible" : ""}`}
         style={cardCircle ? {
@@ -46,8 +73,8 @@ function CalendarCanvas({ progress }) {
         } : undefined}
         aria-hidden={!hoveredCircle}
       >
-        <span>Schedule placeholder</span>
-        <small>Details coming soon</small>
+        <span>Smart Scheduler</span>
+        <small>{cardCircle?.href}</small>
       </div>
     </div>
   );

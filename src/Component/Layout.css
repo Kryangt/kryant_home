@@ -10,10 +10,16 @@
 }
 
 .gallery-section {
+  display: grid;
+  grid-template-rows: minmax(80px, 1fr) auto minmax(80px, 1fr);
   width: 100%;
   max-width: 90vw;
   min-height: 100vh;
   margin: 0 auto;
+}
+
+.gallery-section > h1 {
+  align-self: start;
 }
 
 .site-navbar {

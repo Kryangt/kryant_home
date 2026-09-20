@@ -3,7 +3,8 @@ const CANVAS_HEIGHT = 700;
 const LINE_WIDTH = 4;
 const TRAIL_LENGTH = 0.24;
 const CIRCLE_RADIUS = 25;
-const CIRCLE_FLOAT_DISTANCE = 6;
+const CIRCLE_FLOAT_DISTANCE = 11;
+const SCHEDULER_URL = "https://github.com/Kryangt/Smart-Scheduler";
 const CIRCLE_CELLS = [
   [408, 298],
   [721, 298],
@@ -72,12 +73,15 @@ function circlePoints(centerX, centerY, radius, samples = 52) {
 function createCircleCells() {
   return CIRCLE_CELLS.map(([x, y], index) => ({
     id: `scheduler-circle-${index + 1}`,
+    href: SCHEDULER_URL,
     x,
     y,
     phase: index * (Math.PI / 2),
     delay: index * 0.035,
   }));
 }
+
+export const CALENDAR_CIRCLES = createCircleCells();
 
 // Each incoming route ends exactly where its first calendar stroke begins.
 // This makes the moving trail appear to turn into the final illustration.
@@ -164,7 +168,7 @@ function drawFloatingCircles(context, circles, progress, time, reduceMotion) {
     if (circleProgress <= 0) return;
 
     const floatOffset = circleProgress === 1 && !reduceMotion
-      ? Math.sin(time / 720 + circle.phase) * CIRCLE_FLOAT_DISTANCE
+      ? Math.sin(time * (Math.PI * 2 / 4800) + circle.phase) * CIRCLE_FLOAT_DISTANCE
       : 0;
     const centerY = circle.y + floatOffset;
     drawPolyline(
@@ -180,7 +184,7 @@ export function calendarRender(canvas, options = {}) {
   const context = canvas.getContext("2d");
   const getProgress = options.getProgress || (() => 0);
   const onHoverCircle = options.onHoverCircle || (() => {});
-  const circles = createCircleCells();
+  const circles = CALENDAR_CIRCLES.map((circle) => ({ ...circle }));
   const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
   let animationId;
   let hoveredCircleId = null;
@@ -229,6 +233,7 @@ export function calendarRender(canvas, options = {}) {
     });
 
     drawFloatingCircles(context, circles, progress, time, reduceMotion);
+    options.onCirclesFrame?.(circles);
 
     animationId = requestAnimationFrame(draw);
   }

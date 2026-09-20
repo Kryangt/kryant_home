@@ -79,7 +79,6 @@ export function Layout({ showAbout = true }){
       <Element name="Projects">
       <section className="gallery-section">  
           <h1>Gallery</h1>
-          <br></br>
           <Gallery/>
         </section>
       </Element>
